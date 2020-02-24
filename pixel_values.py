@@ -1,18 +1,19 @@
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-from PIL import Image
 import cv2
 import numpy as np
 import os
 
-def image_pixels(img_path):                 # Returns A List Of The Pixel Values For A Given Image
-    image = Image.open(img_path, 'r')       # .open is a method in Image Class (Doesn't Give any data though).
-    width, height = image.size
-    print image.size
-    pixel_values = list(image.getdata())    # returns the RGB values for a grid (UnRolled Form).
-    pixel_values = np.array(pixel_values).reshape([width, height, 3])   # Rolled Form based on size of image.
-    return pixel_values
+def grab_cut(img):
+    rect = (5, 25, 230, 250)
+    mask = np.zeros(img.shape[:2], np.uint8)
+    bgdModel = np.zeros((1,65), np.float64)
+    fgdModel = np.zeros((1,65), np.float64)
+    cv2.grabCut(img, mask, rect, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_RECT)
+    mask2 = np.where((mask ==2) | (mask == 0), 0, 1).astype('uint8')
+    img = img*mask2[:, :, np.newaxis]
+    return img
 
 def get_images(directory):                  # Returns A Numpy Array Of The Path Of Images
     image_files = []
@@ -32,26 +33,6 @@ def display(a, b, title1 = "Original", title2 = "Edited"):
     plt.subplot(121), plt.imshow(a), plt.title(title1)
     plt.xticks([]), plt.yticks([])
     plt.subplot(122), plt.imshow(b), plt.title(title2)
-    plt.xticks([]), plt.yticks([])
-    plt.show()
-
-def display_3(a,b,c):
-    plt.subplot(131), plt.imshow(a), plt.title('HSV')
-    plt.xticks([]), plt.yticks([])
-    plt.subplot(132), plt.imshow(b), plt.title('Mask')
-    plt.xticks([]), plt.yticks([])
-    plt.subplot(133), plt.imshow(c), plt.title('Img')
-    plt.xticks([]), plt.yticks([])
-    plt.show()
-
-def disp_transf(a,b,c,d):
-    plt.subplot(141), plt.imshow(a), plt.title('Resized Image')
-    plt.xticks([]), plt.yticks([])
-    plt.subplot(142), plt.imshow(b), plt.title('Segmented')
-    plt.xticks([]), plt.yticks([])
-    plt.subplot(143), plt.imshow(c), plt.title('Opening')
-    plt.xticks([]), plt.yticks([])
-    plt.subplot(144), plt.imshow(d), plt.title('Dilate')
     plt.xticks([]), plt.yticks([])
     plt.show()
 
@@ -75,38 +56,20 @@ def image_processing(img_path):
     #display(res_img[0], image_no_noise[0], 'ReSized', 'Blurred')
 
     # ------------------------------------------------------------------------------------------------------------------
-    # Segmentation (GrayScaled -> AdaptiveGaussianThreshold)
+    # Segmentation & Morphology:
 
     ''' Color Really Doesnt Help Us In Image Classification Of Vehicles, A More Important Prospect For This Problem Is
      How The Edges And Shape Change, Hence Only The Information On " HOW THE BOUNDARIES ARE CHANGING IS WHAT MATTERS
      IN THIS PARTICULAR PROBLEM STATEMENT ", had it been color related then it would have been a different scenario.'''
 
-    hsv_image = cv2.cvtColor(image_no_noise[0], cv2.COLOR_BGR2HSV)  # Converts The Image Into 'Gray Scaled.
-    lower_red = np.array([70, 15, 0])
-    upper_red = np.array([255,255,255])
-    mask = cv2.inRange(hsv_image, lower_red, upper_red)  # Would Mask If A Particular Grids Pixel Would Fall In The Limit
-    res = cv2.bitwise_and(hsv_image, hsv_image, mask=mask)
-    kernel = np.ones((3, 3), np.uint8)
-    opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=2)
-    sure_bg = cv2.dilate(opening, kernel, iterations=3)
-    dist_transform = cv2.distanceTransform(opening, cv2.DIST_L2, 5)
-    ret, sure_fg = cv2.threshold(dist_transform, 0.7 * dist_transform.max(), 255, 0)
-    sure_fg = np.uint8(sure_fg)
-    unknown = cv2.subtract(sure_bg, sure_fg)
+    img = grab_cut(image_no_noise[0])           # Cuts The Resized Blurred Image Into The Rectangle Specified, Removes Noise To Some Extent
+    edges = cv2.Canny(img, 100, 100)            # Gets The Edges Of The Given Grab-Cut Image
+    edges = cv2.GaussianBlur(edges, (5,5), 0)   # Blurring The Image For Again Better Noise Removal
 
-    display_one(mask)
-
-    # Separating Objects With Markers:
-
-    ret, markers = cv2.connectedComponents(sure_fg)
-    markers = markers + 1
-    markers[unknown == 255] = 0
-    markers = cv2.watershed(res_img[0], markers)
-    res_img[0][markers == -1] = [255, 0, 0]
-    disp_transf(res_img[0], hsv_image, mask, markers)
-
-    #display(res_img[0], markers, 'Original', 'Marked')
+    display(res_img[0], edges, 'Resized_Img', 'Segmented Image')
+    
+    # ------------------------------------------------------------------------------------------------------------------
 
 path = '/Users/nikhil/Desktop/Project/Image-Classification/Utilities'
 image_path = get_images(path)
-image_processing(image_path[120])
+image_processing(image_path[3986])
