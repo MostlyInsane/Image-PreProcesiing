@@ -1,4 +1,6 @@
-''' Credits To Prince Canuma, Refrence: https://towardsdatascience.com/image-pre-processing-c1aec0be3edf
+# Image PreProcessing For Classifying Automobile's (4 Wheelers, 2 Wheelers, HCV, LCV, Others)
+
+''' Credits To Prince Canuma, (Refrence: https://towardsdatascience.com/image-pre-processing-c1aec0be3edf)
 For Detailing All The Necessary Steps Required In Image PreProcessing, 'THE SEGMENTATION METHOD USED IN 
 THE ARTICLE DOESNT HELP FOR OUR PROBLEM STATEMENT', Hence A Different Approach Has Been Taken By Detecting
 Edges Through Canny's Method, Appreciable Results Were Found '''
