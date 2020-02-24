@@ -1,3 +1,9 @@
+''' Credits To Prince Canuma, Refrence: https://towardsdatascience.com/image-pre-processing-c1aec0be3edf
+For Detailing All The Necessary Steps Required In Image PreProcessing, 'THE SEGMENTATION METHOD USED IN 
+THE ARTICLE DOESNT HELP FOR OUR PROBLEM STATEMENT', Hence A Different Approach Has Been Taken By Detecting
+Edges Through Canny's Method, Appreciable Results Were Found '''
+
+
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
