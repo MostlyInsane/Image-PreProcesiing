@@ -5,7 +5,6 @@ For Detailing All The Necessary Steps Required In Image PreProcessing, 'THE SEGM
 THE ARTICLE DOESNT HELP FOR OUR PROBLEM STATEMENT', Hence A Different Approach Has Been Taken By Detecting
 Edges Through Canny's Method, Appreciable Results Were Found '''
 
-
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -45,22 +44,23 @@ def display(a, b, title1 = "Original", title2 = "Edited"):
     plt.show()
 
 def image_processing(img_path):
-    # Resize Image: (Baseline Size For All Images Fed Into Our AI Algorithm)
+    # Resize Image: (Baseline Size For All Images Fed Into Our ML Algorithm)
     # ------------------------------------------------------------------------------------------------------------------
-    img_value = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-    print ('Original Value = ', img_value.shape)    # (Height, Width, RGB)
+    res_img = []
+    img_value = []
     width  = 256    # Resized Values
     height = 256    # Resized Values
     dim = (width, height)
-    res_img = [cv2.resize(img_value, dim, interpolation=cv2.INTER_CUBIC)]
-    print ('ReSized: ', res_img[0].shape)
-    #display(img_value, res_img[0])
+    for i in range(len(img_path) - 1):
+        img_value.append(cv2.imread(img_path[i], cv2.IMREAD_UNCHANGED))
+        res_img.append(cv2.resize(img_value[i], dim, interpolation=cv2.INTER_CUBIC))
 
     # ------------------------------------------------------------------------------------------------------------------
     # Removing Noise Using GaussianBlur: (To Remove Noise In Our Data, Obtain Uniform Variation In Brightness/Color)
     image_no_noise = []
-    gaussian_blur = cv2.GaussianBlur(res_img[0], (5, 5), 0)
-    image_no_noise.append(gaussian_blur)
+    for i in range(len(img_path) - 1):
+        gaussian_blur = cv2.GaussianBlur(res_img[i], (5, 5), 0)
+        image_no_noise.append(gaussian_blur)
     #display(res_img[0], image_no_noise[0], 'ReSized', 'Blurred')
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -70,14 +70,14 @@ def image_processing(img_path):
      How The Edges And Shape Change, Hence Only The Information On " HOW THE BOUNDARIES ARE CHANGING IS WHAT MATTERS
      IN THIS PARTICULAR PROBLEM STATEMENT ", had it been color related then it would have been a different scenario.'''
 
-    img = grab_cut(image_no_noise[0])           # Cuts The Resized Blurred Image Into The Rectangle Specified, Removes Noise To Some Extent
-    edges = cv2.Canny(img, 100, 100)            # Gets The Edges Of The Given Grab-Cut Image
-    edges = cv2.GaussianBlur(edges, (5,5), 0)   # Blurring The Image For Again Better Noise Removal
+    modif_img = []
+    for i in range(len(img_path) - 1):
+        img = grab_cut(image_no_noise[i])  # Cuts The Resized Blurred Image Into The Rectangle Specified, Removes Noise To Some Extent
+        edges = cv2.Canny(img, 100, 100)                      # Gets The Edges Of The Given Grab-Cut Image
+        modif_img.append(cv2.GaussianBlur(edges, (5, 5), 0))  # Blurring The Image For Again Better Noise Removal
 
-    display(res_img[0], edges, 'Resized_Img', 'Segmented Image')
-    
-    # ------------------------------------------------------------------------------------------------------------------
+    #display(res_img[i], modif_img[i], 'Resized_Img', 'Segmented Image')
 
 path = '/Users/nikhil/Desktop/Project/Image-Classification/Utilities'
 image_path = get_images(path)
-image_processing(image_path[3986])
+image_processing(image_path[0: 10])
